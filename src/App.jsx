@@ -10,7 +10,6 @@ import {
 import {
   RedirectToSignIn,
   SignIn,
-  SignOutButton,
   UserButton,
   useAuth,
   useUser,
@@ -829,13 +828,9 @@ function AdminGate() {
           <span className="eyebrow">ACCESS RESTRICTED</span>
           <h1>Admin access is restricted</h1>
           <p className="lead">
-            Your signed-in email is not authorized to access this dashboard.
-            <br> 
+            Your signed-in email is not authorized to access this dashboard.<span>
               contact Shanul for access +971 54 177 5152.
-            </br>
-            <br>
-            sign out and sign in with an authorized email to continue.
-            </br>
+            </span>
           </p>
           <UserButton />
         </div>
