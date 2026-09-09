@@ -328,11 +328,12 @@ function Home() {
                 key={c}
               >
                 <div className="cat-num">
-                  {String(
-                    d.products.filter(
+                  {(() => {
+                    const count = d.products.filter(
                       (p) => normalizeCategory(p.category) === normalizeCategory(c)
-                    ).length 
-                  ).padStart(2, "0")} Products Available    
+                    ).length;
+                    return count ? `${count} Products Available` : "Products Unavailable";
+                  })()}
                 </div>
                 <h3>{c}</h3>
                 <span>
