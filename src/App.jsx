@@ -331,8 +331,8 @@ function Home() {
                   {String(
                     d.products.filter(
                       (p) => normalizeCategory(p.category) === normalizeCategory(c)
-                    ).length
-                  ).padStart(2, "0")}
+                    ).length 
+                  ).padStart(2, "0")} Products Available    
                 </div>
                 <h3>{c}</h3>
                 <span>
