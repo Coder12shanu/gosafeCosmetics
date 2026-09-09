@@ -838,7 +838,6 @@ function AdminGate() {
             </br>
           </p>
           <UserButton />
-          <SignOutButton />
         </div>
       </main>
     );
