@@ -421,12 +421,15 @@ function Home() {
 }
 function Products() {
   const d = useData();
+  const { search } = useLocation();
+  const categoryFromUrl = new URLSearchParams(search).get("category") || "";
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState("");
+  const [cat, setCat] = useState(categoryFromUrl);
+  useEffect(() => setCat(categoryFromUrl), [categoryFromUrl]);
   const filtered = d.products.filter(
     (p) =>
       (p.name + p.code + p.category).toLowerCase().includes(q.toLowerCase()) &&
-      (!cat || p.category === cat)
+      (!cat || normalizeCategory(p.category) === normalizeCategory(cat))
   );
   return (
     <Layout>
@@ -829,7 +832,7 @@ function AdminGate() {
           <h1>Admin access is restricted</h1>
           <p className="lead">
             Your signed-in email is not authorized to access this dashboard.<span>
-              contact Shanul for access +971 54 177 5152.
+               contact Shanul for access +971 54 177 5152.
             </span>
           </p>
           <UserButton />
