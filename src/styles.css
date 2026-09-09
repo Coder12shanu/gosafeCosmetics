@@ -79,6 +79,9 @@ select {
 .nav-links > a:not(.nav-wa):hover {
   color: var(--accent);
 }
+.nav-links > a.active:not(.nav-wa) {
+  color: var(--accent);
+}
 .nav-wa,
 .btn {
   display: inline-flex;
