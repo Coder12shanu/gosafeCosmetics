@@ -50,6 +50,7 @@ Uploaded logos are currently stored inside the JSON state as data URLs. For larg
 Create a Clerk application and add its publishable key to `.env.local`:
 ```env
 VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_publishable_key
+VITE_ADMIN_EMAILS=gosafegt@gmail.com,boliviansabu@gmail.com
 ```
 
-Add the same `VITE_CLERK_PUBLISHABLE_KEY` variable in Vercel. The public pages remain open, while `/admin` requires a Clerk account and provides a user menu for signing out. Configure allowed sign-up and sign-in URLs in Clerk to include `/sign-in` and your deployed site URL.
+Add both variables in Vercel. The public pages remain open, while `/admin` requires a Clerk account whose primary email is listed in `VITE_ADMIN_EMAILS`. Configure allowed sign-up and sign-in URLs in Clerk to include `/sign-in` and your deployed site URL.
