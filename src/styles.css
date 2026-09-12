@@ -82,6 +82,89 @@ select {
 .nav-links > a.active:not(.nav-wa) {
   color: var(--accent);
 }
+.products-menu {
+  position: relative;
+  height: 76px;
+  display: flex;
+  align-items: center;
+}
+.products-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: inherit;
+}
+.products-trigger:hover,
+.products-trigger.active {
+  color: var(--accent);
+}
+.products-trigger svg {
+  transition: transform 0.2s ease;
+}
+.products-menu.is-open .products-trigger svg {
+  transform: rotate(180deg);
+}
+.category-dropdown {
+  position: absolute;
+  top: calc(100% - 8px);
+  right: -18px;
+  width: 440px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 22px 55px rgba(23, 23, 23, 0.14);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.products-menu.is-open .category-dropdown {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.category-dropdown-all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 10px 13px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--dark);
+  font-size: 13px;
+  font-weight: 700;
+}
+.category-dropdown-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.category-dropdown-grid a {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  padding: 7px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.category-dropdown-grid a:hover {
+  background: var(--soft);
+}
+.category-dropdown-grid img {
+  width: 100%;
+  height: 72px;
+  border-radius: 7px;
+  object-fit: cover;
+}
 .nav-wa,
 .btn {
   display: inline-flex;
@@ -1009,6 +1092,39 @@ footer {
   }
   .nav-links.open {
     display: flex;
+  }
+  .products-menu {
+    height: auto;
+    display: block;
+  }
+  .products-trigger {
+    width: 100%;
+    justify-content: space-between;
+    padding: 12px 0;
+  }
+  .category-dropdown {
+    display: none;
+    position: static;
+    width: auto;
+    padding: 0 0 8px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    transform: none;
+    transition: none;
+  }
+  .products-menu.is-open .category-dropdown {
+    display: block;
+    transform: none;
+  }
+  .category-dropdown-all {
+    padding: 8px 0 12px;
+  }
+  .category-dropdown-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .category-dropdown-grid img {
+    height: 82px;
   }
   .nav-mobile {
     display: flex;

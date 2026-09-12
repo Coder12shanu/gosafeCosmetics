@@ -25,6 +25,7 @@ import {
   Truck,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Plus,
   Trash2,
   Edit3,
@@ -86,9 +87,27 @@ function ContactBar({ s }) {
     </div>
   );
 }
-function Navbar({ s }) {
+const categoryFallbackImages = [
+  "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=500&q=80",
+  "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=500&q=80",
+  "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=500&q=80",
+  "https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?auto=format&fit=crop&w=500&q=80",
+];
+
+function Navbar({ s, d }) {
   const [open, setOpen] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const { pathname } = useLocation();
+  const hasCategoryPath = pathname === "/products";
+
+  const categoryItems = d.categories.map((category, index) => ({
+    name: category,
+    image:
+      d.products.find(
+        (product) => normalizeCategory(product.category) === normalizeCategory(category)
+      )?.image || categoryFallbackImages[index % categoryFallbackImages.length],
+  }));
+
   return (
     <header className="navbar">
       <div className="container nav-inner">
@@ -96,26 +115,50 @@ function Navbar({ s }) {
           {s.logo && <img src={s.logo} alt={s.companyName} />}
         </Link>
         <nav className={open ? "nav-links open" : "nav-links"}>
-          {[
-            ["/", "Home"],
-            ["/products", "Products"],
-            ["/about", "About Us"],
-            ["/careers", "Careers"],
-            ["/contact", "Contact"],
-          ].map(([p, t]) => (
-            <Link
-              key={p}
-              to={p}
-              className={
-                pathname === p || (p !== "/" && pathname.startsWith(`${p}/`))
-                  ? "active"
-                  : ""
-              }
-              onClick={() => setOpen(false)}
+          <Link to="/" className={pathname === "/" ? "active" : ""} onClick={() => setOpen(false)}>
+            Home
+          </Link>
+          <div
+            className={categoriesOpen ? "products-menu is-open" : "products-menu"}
+            onMouseEnter={() => setCategoriesOpen(true)}
+            onMouseLeave={() => setCategoriesOpen(false)}
+          >
+            <button
+              className={hasCategoryPath ? "products-trigger active" : "products-trigger"}
+              onClick={() => setCategoriesOpen(!categoriesOpen)}
+              aria-expanded={categoriesOpen}
+              aria-haspopup="true"
             >
-              {t}
-            </Link>
-          ))}
+              Products <ChevronDown size={15} />
+            </button>
+            <div className="category-dropdown">
+              <Link to="/products" className="category-dropdown-all" onClick={() => { setCategoriesOpen(false); setOpen(false); }}>
+                <span>View all products</span>
+                <ArrowRight size={16} />
+              </Link>
+              <div className="category-dropdown-grid">
+                {categoryItems.map((category) => (
+                  <Link
+                    key={category.name}
+                    to={`/products?category=${encodeURIComponent(category.name)}`}
+                    onClick={() => { setCategoriesOpen(false); setOpen(false); }}
+                  >
+                    <img src={category.image} alt="" />
+                    <span>{category.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+          <Link to="/about" className={pathname.startsWith("/about") ? "active" : ""} onClick={() => setOpen(false)}>
+            About Us
+          </Link>
+          <Link to="/careers" className={pathname.startsWith("/careers") ? "active" : ""} onClick={() => setOpen(false)}>
+            Careers
+          </Link>
+          <Link to="/contact" className={pathname.startsWith("/contact") ? "active" : ""} onClick={() => setOpen(false)}>
+            Contact
+          </Link>
           <a
             className="nav-wa"
             href={wa(
@@ -147,7 +190,7 @@ function Layout({ children }) {
     <>
       <ScrollToTop />
       <ContactBar s={s} />
-      <Navbar s={s} />
+      <Navbar s={s} d={d} />
       {children}
       <footer>
         <div className="container footer-grid">
