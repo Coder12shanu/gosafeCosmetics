@@ -905,6 +905,7 @@ function Admin() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(null);
   const [offer, setOffer] = useState(null);
+  const [productCategory, setProductCategory] = useState("");
   const update = (patch) => {
     const nd = { ...d, ...patch };
     setD(nd);
@@ -919,7 +920,7 @@ function Admin() {
             id: "p" + Date.now(),
             name: "",
             code: "",
-            category: d.categories[0] || "Skincare",
+            category: productCategory || d.categories[0] || "Skincare",
             image: "",
             images: [],
             description: "",
@@ -1020,16 +1021,54 @@ function Admin() {
               />
             ) : (
               <>
+                <div className="admin-category-filter">
+                  <button
+                    className={!productCategory ? "active" : ""}
+                    onClick={() => setProductCategory("")}
+                  >
+                    <b>All Products</b>
+                    <span>{d.products.length} products</span>
+                  </button>
+                  {d.categories.map((category) => {
+                    const count = d.products.filter(
+                      (product) =>
+                        normalizeCategory(product.category) ===
+                        normalizeCategory(category)
+                    ).length;
+                    return (
+                      <button
+                        key={category}
+                        className={
+                          normalizeCategory(productCategory) ===
+                          normalizeCategory(category)
+                            ? "active"
+                            : ""
+                        }
+                        onClick={() => setProductCategory(category)}
+                      >
+                        <b>{category}</b>
+                        <span>{count} product{count === 1 ? "" : "s"}</span>
+                      </button>
+                    );
+                  })}
+                </div>
                 <div className="admin-actions">
                   <button
                     className="btn primary"
                     onClick={() => editProduct(null)}
                   >
-                    <Plus /> Add Product
+                    <Plus /> Add Product{productCategory ? ` to ${productCategory}` : ""}
                   </button>
                 </div>
                 <div className="admin-table">
-                  {d.products.map((p) => (
+                  {d.products
+                    .filter(
+                      (product) =>
+                        !productCategory ||
+                        normalizeCategory(product.category) ===
+                          normalizeCategory(productCategory)
+                    )
+                    .map((p) => (
                     <div className="row" key={p.id}>
                       <img src={p.image} />
                       <div>
@@ -1048,7 +1087,13 @@ function Admin() {
                         </button>
                       </div>
                     </div>
-                  ))}
+                    ))}
+                  {!d.products.some(
+                    (product) =>
+                      !productCategory ||
+                      normalizeCategory(product.category) ===
+                        normalizeCategory(productCategory)
+                  ) && <div className="empty">No products in this category.</div>}
                 </div>
               </>
             )}

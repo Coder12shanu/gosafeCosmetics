@@ -911,6 +911,35 @@ footer {
   justify-content: flex-end;
   margin-bottom: 15px;
 }
+.admin-category-filter {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.admin-category-filter button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-height: 74px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.admin-category-filter button:hover,
+.admin-category-filter button.active {
+  border-color: var(--accent);
+  background: var(--soft);
+}
+.admin-category-filter button span {
+  color: var(--muted);
+  font-size: 12px;
+}
 .admin-table {
   background: #fff;
   border: 1px solid var(--line);
