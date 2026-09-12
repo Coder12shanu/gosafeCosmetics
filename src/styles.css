@@ -875,6 +875,26 @@ footer {
   align-items: end;
   margin-bottom: 25px;
 }
+.admin-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.admin-back {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--dark);
+  cursor: pointer;
+}
+.admin-back:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 .admin-top h1 {
   margin: 0;
   font-size: 38px;

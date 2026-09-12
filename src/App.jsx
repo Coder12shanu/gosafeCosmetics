@@ -26,6 +26,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
+  ArrowLeft,
   Plus,
   Trash2,
   Edit3,
@@ -935,6 +936,14 @@ function Admin() {
     if (confirm("Delete this product?"))
       update({ products: d.products.filter((p) => p.id !== id) });
   };
+  const goBack = () => {
+    if (editing) {
+      setEditing(null);
+      setForm(null);
+      return;
+    }
+    setTab("dashboard");
+  };
   return (
     <div className="admin">
       <aside className="admin-side">
@@ -967,7 +976,18 @@ function Admin() {
       </aside>
       <section className="admin-main">
         <div className="admin-top">
-          <div>
+          <div className="admin-heading">
+            {(tab !== "dashboard" || editing) && (
+              <button
+                className="admin-back"
+                onClick={goBack}
+                aria-label="Go back"
+                title="Go back"
+              >
+                <ArrowLeft size={19} />
+              </button>
+            )}
+            <div>
             <span className="eyebrow">ADMIN DASHBOARD</span>
             <h1>
               {tab === "dashboard"
@@ -976,6 +996,7 @@ function Admin() {
                 ? "Company & Branding"
                 : tab[0].toUpperCase() + tab.slice(1)}
             </h1>
+            </div>
           </div>
           <UserButton />
         </div>
