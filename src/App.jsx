@@ -43,6 +43,7 @@ import { load, save, reset, sync } from "./store";
 
   const d = load();
 
+          ["categories", Tag, "Categories"],
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -1061,6 +1062,129 @@ function Admin() {
         {tab === "jobs" && <JobsAdmin d={d} update={update} />}{" "}
         {tab === "messages" && <MessagesAdmin d={d} />}
       </section>
+    </div>
+  );
+}
+function CategoriesAdmin({ d, update }) {
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [name, setName] = useState("");
+
+  const startCategory = (category = "") => {
+    setEditingCategory(category || "new");
+    setName(category);
+  };
+
+  const saveCategory = () => {
+    const nextName = name.trim();
+    if (!nextName) {
+      alert("Please enter a category name.");
+      return;
+    }
+    const duplicate = d.categories.some(
+      (category) =>
+        category.toLowerCase() === nextName.toLowerCase() &&
+        category !== editingCategory
+    );
+    if (duplicate) {
+      alert("This category already exists.");
+      return;
+    }
+    if (editingCategory === "new") {
+      update({ categories: [...d.categories, nextName] });
+    } else {
+      update({
+        categories: d.categories.map((category) =>
+          category === editingCategory ? nextName : category
+        ),
+        products: d.products.map((product) =>
+          product.category === editingCategory
+            ? { ...product, category: nextName }
+            : product
+        ),
+      });
+    }
+    setEditingCategory(null);
+    setName("");
+  };
+
+  const deleteCategory = (category) => {
+    const assignedProducts = d.products.filter(
+      (product) => product.category === category
+    );
+    if (assignedProducts.length) {
+      alert(
+        `Cannot delete "${category}" because ${assignedProducts.length} product${
+          assignedProducts.length === 1 ? " is" : "s are"
+        } assigned to it. Edit those products first.`
+      );
+      return;
+    }
+    if (confirm(`Delete the "${category}" category?`)) {
+      update({ categories: d.categories.filter((item) => item !== category) });
+    }
+  };
+
+  return (
+    <div className="category-admin">
+      {editingCategory ? (
+        <div className="form-card category-form">
+          <h2>{editingCategory === "new" ? "Add Category" : "Edit Category"}</h2>
+          <input
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Category name"
+            onKeyDown={(e) => e.key === "Enter" && saveCategory()}
+          />
+          <div className="editor-actions">
+            <button
+              className="btn secondary"
+              onClick={() => {
+                setEditingCategory(null);
+                setName("");
+              }}
+            >
+              Cancel
+            </button>
+            <button className="btn primary" onClick={saveCategory}>
+              <Save /> Save Category
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="admin-actions">
+          <button className="btn primary" onClick={() => startCategory()}>
+            <Plus /> Add Category
+          </button>
+        </div>
+      )}
+      <div className="admin-table category-table">
+        {d.categories.length ? (
+          d.categories.map((category) => {
+            const productCount = d.products.filter(
+              (product) => product.category === category
+            ).length;
+            return (
+              <div className="category-row" key={category}>
+                <div>
+                  <b>{category}</b>
+                  <span>{productCount} product{productCount === 1 ? "" : "s"}</span>
+                </div>
+                <div className="row-actions">
+                  <button onClick={() => startCategory(category)} aria-label={`Edit ${category}`}>
+                    <Edit3 />
+                  </button>
+                  <button onClick={() => deleteCategory(category)} aria-label={`Delete ${category}`}>
+                    <Trash2 />
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="empty">No categories yet.</div>
+        )}
+      </div>
     </div>
   );
 }
