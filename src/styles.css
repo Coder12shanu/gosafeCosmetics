@@ -961,6 +961,33 @@ footer {
   height: 34px;
   border-radius: 8px;
 }
+.category-form {
+  max-width: 620px;
+  margin-bottom: 20px;
+}
+.category-table {
+  max-width: 820px;
+}
+.category-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.category-row:last-child {
+  border-bottom: 0;
+}
+.category-row > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.category-row span {
+  color: var(--muted);
+  font-size: 12px;
+}
 .editor-grid,
 .branding {
   display: grid;

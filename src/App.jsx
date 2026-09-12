@@ -41,7 +41,6 @@ import {
 } from "lucide-react";
 import { load, save, reset, sync } from "./store";
 
-  const d = load();
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -97,7 +96,11 @@ function Navbar({ s, d }) {
   const [open, setOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const { pathname } = useLocation();
-  const hasCategoryPath = pathname === "/products";
+   const update = (patch) => {
+     const nd = { ...d, ...patch };
+     setD(nd);
+     save(nd);
+   };
 
   const categoryItems = d.categories.map((category, index) => ({
     name: category,
@@ -133,6 +136,7 @@ function Navbar({ s, d }) {
             <div className="category-dropdown">
               <Link to="/products" className="category-dropdown-all" onClick={() => { setCategoriesOpen(false); setOpen(false); }}>
                 <span>View all products</span>
+           ["categories", Tag, "Categories"],
                 <ArrowRight size={16} />
               </Link>
               <div className="category-dropdown-grid">
@@ -944,9 +948,9 @@ function Admin() {
         {[
           ["dashboard", HomeIcon, "Dashboard"],
           ["products", Package, "Products"],
+          ["categories", Tag, "Categories"],
           ["offers", Tag, "Offers"],
           ["branding", Settings, "Company & Branding"],
-          ["jobs", Briefcase, "Careers"],
           ["messages", Inbox, "Enquiries"],
         ].map(([k, I, t]) => (
           <button
@@ -1058,8 +1062,136 @@ function Admin() {
         {tab === "offers" && <OffersAdmin d={d} update={update} />}{" "}
         {tab === "branding" && <BrandingAdmin d={d} update={update} />}{" "}
         {tab === "jobs" && <JobsAdmin d={d} update={update} />}{" "}
+        {tab === "categories" && <CategoriesAdmin d={d} update={update} />}
         {tab === "messages" && <MessagesAdmin d={d} />}
       </section>
+    </div>
+  );
+}
+function CategoriesAdmin({ d, update }) {
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [name, setName] = useState("");
+
+  const startEditing = (category = "") => {
+    setEditingCategory(category || "new");
+    setName(category);
+  };
+
+  const cancelEditing = () => {
+    setEditingCategory(null);
+    setName("");
+  };
+
+  const saveCategory = () => {
+    const nextName = name.trim();
+    if (!nextName) {
+      alert("Please enter a category name.");
+      return;
+    }
+
+    const duplicate = d.categories.some(
+      (category) =>
+        category.toLowerCase() === nextName.toLowerCase() &&
+        category !== editingCategory
+    );
+    if (duplicate) {
+      alert("This category already exists.");
+      return;
+    }
+
+    if (editingCategory === "new") {
+      update({ categories: [...d.categories, nextName] });
+    } else {
+      update({
+        categories: d.categories.map((category) =>
+          category === editingCategory ? nextName : category
+        ),
+        products: d.products.map((product) =>
+          product.category === editingCategory
+            ? { ...product, category: nextName }
+            : product
+        ),
+      });
+    }
+    cancelEditing();
+  };
+
+  const deleteCategory = (category) => {
+    const assignedProducts = d.products.filter(
+      (product) => product.category === category
+    );
+    if (assignedProducts.length) {
+      alert(
+        `Cannot delete "${category}" because ${assignedProducts.length} product${
+          assignedProducts.length === 1 ? " is" : "s are"
+        } assigned to it. Edit those products first.`
+      );
+      return;
+    }
+    if (confirm(`Delete the "${category}" category?`)) {
+      update({ categories: d.categories.filter((item) => item !== category) });
+    }
+  };
+
+  return (
+    <div className="category-admin">
+      {editingCategory ? (
+        <div className="form-card category-form">
+          <h2>{editingCategory === "new" ? "Add Category" : "Edit Category"}</h2>
+          <input
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && saveCategory()}
+            placeholder="Category name"
+          />
+          <div className="editor-actions">
+            <button className="btn secondary" onClick={cancelEditing}>
+              Cancel
+            </button>
+            <button className="btn primary" onClick={saveCategory}>
+              <Save /> Save Category
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="admin-actions">
+          <button className="btn primary" onClick={() => startEditing()}>
+            <Plus /> Add Category
+          </button>
+        </div>
+      )}
+      <div className="admin-table category-table">
+        {d.categories.map((category) => {
+          const productCount = d.products.filter(
+            (product) => product.category === category
+          ).length;
+          return (
+            <div className="category-row" key={category}>
+              <div>
+                <b>{category}</b>
+                <span>
+                  {productCount} product{productCount === 1 ? "" : "s"}
+                </span>
+              </div>
+              <div className="row-actions">
+                <button
+                  onClick={() => startEditing(category)}
+                  aria-label={`Edit ${category}`}
+                >
+                  <Edit3 />
+                </button>
+                <button
+                  onClick={() => deleteCategory(category)}
+                  aria-label={`Delete ${category}`}
+                >
+                  <Trash2 />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
