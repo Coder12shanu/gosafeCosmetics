@@ -96,11 +96,7 @@ function Navbar({ s, d }) {
   const [open, setOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const { pathname } = useLocation();
-   const update = (patch) => {
-     const nd = { ...d, ...patch };
-     setD(nd);
-     save(nd);
-   };
+  const hasCategoryPath = pathname === "/products";
 
   const categoryItems = d.categories.map((category, index) => ({
     name: category,
@@ -136,7 +132,6 @@ function Navbar({ s, d }) {
             <div className="category-dropdown">
               <Link to="/products" className="category-dropdown-all" onClick={() => { setCategoriesOpen(false); setOpen(false); }}>
                 <span>View all products</span>
-           ["categories", Tag, "Categories"],
                 <ArrowRight size={16} />
               </Link>
               <div className="category-dropdown-grid">
