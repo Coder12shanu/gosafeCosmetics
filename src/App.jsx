@@ -251,6 +251,13 @@ function Layout({ children }) {
             <Link to="/contact">Contact</Link>
           </div>
           <div>
+            <h4>Business Services</h4>
+            <Link to="/cosmetics-supplier-dubai-uae">Cosmetics Supplier UAE</Link>
+            <Link to="/cosmetics-wholesaler-uae">Cosmetics Wholesaler UAE</Link>
+            <Link to="/skincare-wholesale-uae">Skincare Wholesale UAE</Link>
+            <Link to="/hair-care-supplier-uae">Hair Care Supplier UAE</Link>
+          </div>
+          <div>
             <h4>Markets</h4>
             <span>Asia</span>
             <span>GCC / Middle East</span>
@@ -552,6 +559,128 @@ function Products() {
           {!filtered.length && (
             <div className="empty">No products match your search.</div>
           )}
+        </div>
+      </main>
+    </Layout>
+  );
+}
+const seoPages = {
+  supplier: {
+    path: "/cosmetics-supplier-dubai-uae",
+    eyebrow: "COSMETICS SUPPLIER IN THE UAE",
+    title: "Cosmetics Supplier in Dubai, UAE",
+    description: "GOSAFE COSMETICS supplies skincare, hair care, makeup and personal care products to retailers, distributors and wholesalers in Dubai and across the UAE.",
+    intro: "GOSAFE COSMETICS is a Dubai-based cosmetics supplier serving businesses that need dependable product sourcing and professional wholesale support. We help retailers, distributors and other business customers build a practical cosmetics range for the UAE market.",
+    heading: "Cosmetics supply for UAE businesses",
+    paragraphs: [
+      "Our catalogue includes skincare, hair care, makeup, fragrances and personal care products. Availability, packaging and order quantities can be discussed with our team based on your business requirements.",
+      "We also support international enquiries from companies sourcing cosmetics through Dubai. Contact us with the products, quantities and delivery destination you are considering so we can respond with the relevant information."
+    ],
+    links: ["/cosmetics-wholesaler-uae", "/skincare-wholesale-uae", "/hair-care-supplier-uae"]
+  },
+  wholesaler: {
+    path: "/cosmetics-wholesaler-uae",
+    eyebrow: "WHOLESALE COSMETICS",
+    title: "Cosmetics Wholesaler in the UAE",
+    description: "Source cosmetics wholesale products in the UAE from GOSAFE COSMETICS, including skincare, hair care, makeup and personal care ranges for business buyers.",
+    intro: "GOSAFE COSMETICS works with retailers, resellers and distributors looking for cosmetics wholesale supply in the UAE. Our team can help you review available products and discuss an enquiry suited to your business.",
+    heading: "Wholesale cosmetics categories",
+    paragraphs: [
+      "Choose from everyday skincare, hair care, makeup and personal care products. Product pages include descriptions and specifications where available, while current pricing and availability are confirmed directly for each enquiry.",
+      "For a wholesale quotation, send us the product names or categories you need, estimated quantities and delivery location. This gives our team the information needed to prepare a useful response."
+    ],
+    links: ["/products", "/cosmetics-supplier-dubai-uae", "/makeup-wholesale-dubai"]
+  },
+  distributor: {
+    path: "/cosmetics-distributor-dubai",
+    eyebrow: "COSMETICS DISTRIBUTION",
+    title: "Cosmetics Distributor in Dubai",
+    description: "GOSAFE COSMETICS supports cosmetics distribution enquiries from Dubai for retailers, wholesalers and businesses sourcing products in the UAE and international markets.",
+    intro: "Businesses searching for a cosmetics distributor in Dubai can contact GOSAFE COSMETICS for product sourcing and supply enquiries. We serve customers who need a responsive point of contact for cosmetics and personal care products.",
+    heading: "Supply support for distributors and retailers",
+    paragraphs: [
+      "We can discuss product categories, pack sizes, order requirements and destination markets before you place an enquiry. This helps businesses identify suitable products for their retail or distribution plans.",
+      "Our catalogue is designed for business customers rather than one-off consumer purchases. Browse the product range and contact our team for current availability and commercial details."
+    ],
+    links: ["/products", "/cosmetics-wholesaler-uae", "/contact"]
+  },
+  skincare: {
+    path: "/skincare-wholesale-uae",
+    eyebrow: "SKINCARE WHOLESALE UAE",
+    title: "Skincare Wholesale Supplier in the UAE",
+    description: "Find skincare products for wholesale supply in the UAE from GOSAFE COSMETICS, including facial skincare and hydration products for retailers and distributors.",
+    intro: "GOSAFE COSMETICS supplies skincare products for UAE retailers, resellers, distributors and other business customers. Our skincare range is suitable for companies reviewing products for wholesale and commercial supply.",
+    heading: "Skincare products for business supply",
+    paragraphs: [
+      "Our skincare catalogue includes products such as hydrating facial serums and other personal care items. Each product page provides the available description, category and specifications so you can shortlist products for your enquiry.",
+      "For current stock, pricing and order information, contact GOSAFE COSMETICS with the products and quantities you require. We will confirm the details relevant to your UAE or international destination."
+    ],
+    links: ["/products?category=Skincare", "/cosmetics-supplier-dubai-uae", "/contact"]
+  },
+  hairCare: {
+    path: "/hair-care-supplier-uae",
+    eyebrow: "HAIR CARE SUPPLIER UAE",
+    title: "Hair Care Products Supplier in the UAE",
+    description: "GOSAFE COSMETICS supplies hair care products for wholesale enquiries in the UAE, including hair oils and personal care products for retailers and distributors.",
+    intro: "GOSAFE COSMETICS helps UAE businesses source hair care products for retail, resale and distribution. We work with customers who need product information and a direct route to discuss commercial supply.",
+    heading: "Hair care supply for retailers and distributors",
+    paragraphs: [
+      "Browse our hair care products to review descriptions, product codes and available specifications. Hair care enquiries can include individual products or a broader range for your business catalogue.",
+      "Tell us your required quantities, destination and preferred products when you contact us. Our team can then provide the latest availability and wholesale information."
+    ],
+    links: ["/products?category=Hair%20Care", "/cosmetics-wholesaler-uae", "/contact"]
+  },
+  makeup: {
+    path: "/makeup-wholesale-dubai",
+    eyebrow: "MAKEUP WHOLESALE DUBAI",
+    title: "Makeup Products Wholesale in Dubai",
+    description: "Source makeup products for wholesale in Dubai from GOSAFE COSMETICS, including makeup ranges for retailers, resellers and cosmetics distributors.",
+    intro: "GOSAFE COSMETICS supports makeup wholesale enquiries from Dubai and the wider UAE. Our catalogue gives business buyers a starting point for reviewing makeup products and requesting commercial information.",
+    heading: "Makeup supply for UAE businesses",
+    paragraphs: [
+      "Product information, codes and available specifications are shown on the makeup product pages. Use the catalogue to identify products that may fit your retail or distribution range.",
+      "Contact our team with the product names, quantities and delivery requirements you are considering. We will respond with current availability and the next steps for your enquiry."
+    ],
+    links: ["/products?category=Makeup", "/cosmetics-supplier-dubai-uae", "/contact"]
+  }
+};
+function SeoLandingPage({ page }) {
+  const d = useData();
+  const relatedProducts = d.products.filter((product) =>
+    page.path.includes("skincare")
+      ? normalizeCategory(product.category) === "skincare"
+      : page.path.includes("hair-care")
+      ? normalizeCategory(product.category) === "haircare"
+      : page.path.includes("makeup")
+      ? normalizeCategory(product.category) === "makeup"
+      : false
+  );
+  return (
+    <Layout>
+      <SEO title={page.title} description={page.description} path={page.path} />
+      <main className="page seo-page">
+        <div className="container narrow">
+          <span className="eyebrow">{page.eyebrow}</span>
+          <h1>{page.title}</h1>
+          <p className="lead">{page.intro}</p>
+          <section className="seo-copy">
+            <h2>{page.heading}</h2>
+            {page.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          </section>
+          {relatedProducts.length > 0 && (
+            <section className="seo-products">
+              <h2>Products in this category</h2>
+              <div className="product-grid">
+                {relatedProducts.map((product) => <ProductCard key={product.id} p={product} />)}
+              </div>
+            </section>
+          )}
+          <section className="seo-links">
+            <h2>Explore more</h2>
+            <div>
+              {page.links.map((link) => <Link className="btn secondary" key={link} to={link}>{link === "/contact" ? "Contact our team" : link.includes("products") ? "Browse products" : "View related supply services"}</Link>)}
+            </div>
+          </section>
         </div>
       </main>
     </Layout>
@@ -1675,6 +1804,12 @@ export default function App({ authEnabled = false }) {
       <Route path="/" element={<Home />} />
       <Route path="/products" element={<Products />} />
       <Route path="/products/:id" element={<ProductDetail />} />
+      <Route path={seoPages.supplier.path} element={<SeoLandingPage page={seoPages.supplier} />} />
+      <Route path={seoPages.wholesaler.path} element={<SeoLandingPage page={seoPages.wholesaler} />} />
+      <Route path={seoPages.distributor.path} element={<SeoLandingPage page={seoPages.distributor} />} />
+      <Route path={seoPages.skincare.path} element={<SeoLandingPage page={seoPages.skincare} />} />
+      <Route path={seoPages.hairCare.path} element={<SeoLandingPage page={seoPages.hairCare} />} />
+      <Route path={seoPages.makeup.path} element={<SeoLandingPage page={seoPages.makeup} />} />
       <Route path="/about" element={<About />} />
       <Route path="/careers" element={<Careers />} />
       <Route path="/contact" element={<Contact />} />
