@@ -1273,6 +1273,11 @@ function Admin() {
               <b>{d.messages.length}</b>
               <span>Enquiries</span>
             </div>
+            <div>
+              <Tag />
+              <b>{Object.values(d.subcategories || {}).reduce((total, items) => total + items.length, 0)}</b>
+              <span>Subcategories</span>
+            </div>
           </div>
         )}
         {tab === "products" && (
@@ -1402,6 +1407,7 @@ function CategoriesAdmin({ d, update }) {
   const [editingCategory, setEditingCategory] = useState(null);
   const [name, setName] = useState("");
   const startEditing = (category = "") => {
+    setEditingCategory(category || "new");
     setName(category);
   };
 
