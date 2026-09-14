@@ -65,6 +65,47 @@ const wa = (n, msg) =>
   `https://wa.me/${n.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`;
 const normalizeCategory = (category) =>
   String(category || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const siteUrl = "https://www.gosafecosmetics.com";
+function SEO({ title, description, path = "/", type = "website", product }) {
+  useEffect(() => {
+    const fullTitle = title.includes("GOSAFE") ? title : `${title} | GOSAFE COSMETICS`;
+    const canonical = `${siteUrl}${path}`;
+    document.title = fullTitle;
+    const setMeta = (name, content, attribute = "name") => {
+      let element = document.head.querySelector(`meta[${attribute}="${name}"]`);
+      if (!element) {
+        element = document.createElement("meta");
+        element.setAttribute(attribute, name);
+        document.head.appendChild(element);
+      }
+      element.setAttribute("content", content);
+    };
+    setMeta("description", description);
+    setMeta("og:title", fullTitle, "property");
+    setMeta("og:description", description, "property");
+    setMeta("og:url", canonical, "property");
+    setMeta("og:type", type, "property");
+    let link = document.head.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "canonical";
+      document.head.appendChild(link);
+    }
+    link.href = canonical;
+    const schema = product
+      ? { "@context": "https://schema.org", "@type": "Product", name: product.name, description: product.description, category: product.category, image: [product.image], sku: product.code, brand: { "@type": "Brand", name: "GOSAFE COSMETICS" }, offers: { "@type": "Offer", availability: "https://schema.org/InStock", url: canonical, priceCurrency: "AED" } }
+      : { "@context": "https://schema.org", "@type": "Organization", name: "GOSAFE COSMETICS", url: siteUrl, email: "info@gosafecosmetics.com", telephone: "+971585394030", address: { "@type": "PostalAddress", addressLocality: "Dubai", addressCountry: "AE" } };
+    let script = document.head.querySelector('script[data-seo-schema="true"]');
+    if (!script) {
+      script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.dataset.seoSchema = "true";
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(schema);
+  }, [description, path, product, title, type]);
+  return null;
+}
 function ContactBar({ s }) {
   return (
     <div className="contactbar">
@@ -320,6 +361,7 @@ function Home() {
   const offers = d.offers.filter((o) => o.active);
   return (
     <Layout>
+      <SEO title="Cosmetics Supplier in Dubai, UAE" description="GOSAFE COSMETICS is a cosmetics supplier in Dubai, UAE, supplying skincare, hair care, makeup and personal care products to wholesalers, distributors and retailers." />
       <Hero />
       <section className="section intro">
         <div className="container two-col">
@@ -475,6 +517,7 @@ function Products() {
   );
   return (
     <Layout>
+      <SEO title="Cosmetics Products for Wholesale Supply" description="Browse skincare, hair care, makeup, personal care and fragrance products available from GOSAFE COSMETICS for wholesale and distribution in Dubai, UAE and worldwide." path="/products" />
       <main className="page">
         <div className="container">
           <div className="page-head">
@@ -522,6 +565,7 @@ function ProductDetail() {
   const [idx, setIdx] = useState(0);
   return (
     <Layout>
+      <SEO title={`${p.name} | Wholesale Cosmetics`} description={`${p.description} Available from GOSAFE COSMETICS for wholesale cosmetics supply in Dubai, UAE and international markets.`} path={`/products/${p.id}`} type="product" product={p} />
       <main className="page">
         <div className="container">
           <div className="breadcrumbs">
