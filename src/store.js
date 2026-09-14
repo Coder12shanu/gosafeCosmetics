@@ -19,10 +19,18 @@ const defaults={
       featured:true,offer:false}
   ],
   categories:['Skincare','Hair Care','Makeup','Personal Care','Fragrances','Beauty Accessories'],
+  subcategories:{
+    Makeup:['Blush','Bronzers','Colour Correctors','Concealer','Contouring','Face Powders','Foundation','Highlight','Primers','Setting Sprays','Brows','Eye Liner','Eye Primer','Eyelash Glue','Eyeshadow','False Eyelashes','Lash & Brow Serum','Mascara','Lip Gloss','Lip Liner & Pencils','Lip Oil','Lip Plumper','Lip Stain & Tints','Lipstick','Concealer Brushes','Eye Brushes','Eyelash Curlers','False Nails','Foundation Brushes','Makeup Bags','Makeup Brushes','Makeup Sponges']
+  },
   offers:[{id:'o1',title:'Special Wholesale Offer',description:'Ask our team for current bulk pricing and availability.',image:'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1200&q=80',active:true,productId:'p2'}],
   jobs:[],messages:[],applications:[]
 };
-export function load(){try{return {...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{return defaults}}
+export function load(){
+  try {
+    const stored=JSON.parse(localStorage.getItem(KEY)||'{}');
+    return {...defaults,...stored,subcategories:stored.subcategories||defaults.subcategories};
+  } catch { return defaults }
+}
 export function save(data){
   localStorage.setItem(KEY,JSON.stringify(data));
   window.dispatchEvent(new Event('gosafe-data-change'));
@@ -33,9 +41,10 @@ export async function sync(){
   if(!response.ok)throw new Error('Unable to load remote data');
   const result=await response.json();
   if(result.data){
-    localStorage.setItem(KEY,JSON.stringify(result.data));
+    const data={...defaults,...result.data,subcategories:result.data.subcategories||defaults.subcategories};
+    localStorage.setItem(KEY,JSON.stringify(data));
     window.dispatchEvent(new Event('gosafe-data-change'));
-    return result.data;
+    return data;
   }
   const data=load();
   save(data);

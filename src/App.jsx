@@ -71,6 +71,21 @@ const makeupSubcategoryGroups = [
   { title: "Lips", items: ["Lip Gloss", "Lip Liner & Pencils", "Lip Oil", "Lip Plumper", "Lip Stain & Tints", "Lipstick"] },
   { title: "Makeup Brushes & Accessories", items: ["Concealer Brushes", "Eye Brushes", "Eyelash Curlers", "False Nails", "Foundation Brushes", "Makeup Bags", "Makeup Brushes", "Makeup Sponges"] },
 ];
+const defaultSubcategories = {
+  Makeup: makeupSubcategoryGroups.flatMap((group) => group.items),
+};
+function getSubcategories(data, category, brand = "") {
+  if (!category && !brand) return [];
+  const configured = category ? data.subcategories?.[category] || [] : [];
+  const fromProducts = data.products
+    .filter((product) =>
+      (!category || normalizeCategory(product.category) === normalizeCategory(category)) &&
+      (!brand || normalizeCategory(product.brand || "Unbranded") === normalizeCategory(brand))
+    )
+    .map((product) => product.subcategory)
+    .filter(Boolean);
+  return [...new Set([...configured, ...fromProducts])].sort();
+}
 const siteUrl = "https://www.gosafecosmetics.com";
 function SEO({ title, description, path = "/", type = "website", product }) {
   useEffect(() => {
@@ -153,6 +168,9 @@ function Navbar({ s, d }) {
         (product) => normalizeCategory(product.category) === normalizeCategory(category)
       )?.image || categoryFallbackImages[index % categoryFallbackImages.length],
   }));
+  const subcategorySections = d.categories
+    .map((category) => ({ category, items: getSubcategories(d, category) }))
+    .filter((section) => section.items.length);
 
   return (
     <header className="navbar">
@@ -194,24 +212,21 @@ function Navbar({ s, d }) {
                   </Link>
                 ))}
               </div>
-              <div className="makeup-subcategory-menu">
-                <div className="makeup-menu-heading">
-                  <span>Makeup</span>
-                  <Link to="/products?category=Makeup" onClick={() => { setCategoriesOpen(false); setOpen(false); }}>Shop all</Link>
+              {subcategorySections.map((section) => (
+                <div className="makeup-subcategory-menu" key={section.category}>
+                  <div className="makeup-menu-heading">
+                    <span>{section.category}</span>
+                    <Link to={`/products?category=${encodeURIComponent(section.category)}`} onClick={() => { setCategoriesOpen(false); setOpen(false); }}>Shop all</Link>
+                  </div>
+                  <div className="makeup-subcategory-grid">
+                    {section.items.map((item) => (
+                      <Link key={item} to={`/products?category=${encodeURIComponent(section.category)}&subcategory=${encodeURIComponent(item)}`} onClick={() => { setCategoriesOpen(false); setOpen(false); }}>
+                        {item}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-                <div className="makeup-subcategory-grid">
-                  {makeupSubcategoryGroups.map((group) => (
-                    <div key={group.title}>
-                      <h4>{group.title}</h4>
-                      {group.items.map((item) => (
-                        <Link key={item} to={`/products?category=Makeup&subcategory=${encodeURIComponent(item)}`} onClick={() => { setCategoriesOpen(false); setOpen(false); }}>
-                          {item}
-                        </Link>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
           <Link to="/about" className={pathname.startsWith("/about") ? "active" : ""} onClick={() => setOpen(false)}>
@@ -549,6 +564,13 @@ function Products() {
   useEffect(() => setSubcategory(subcategoryFromUrl), [subcategoryFromUrl]);
   useEffect(() => setBrand(brandFromUrl), [brandFromUrl]);
   const brands = [...new Set(d.products.map((p) => p.brand?.trim() || "Unbranded"))].sort();
+  const subcategories = getSubcategories(d, cat, brand);
+  const showSubcategory = Boolean((cat || brand) && subcategories.length);
+  useEffect(() => {
+    if (subcategory && !subcategories.some((item) => normalizeCategory(item) === normalizeCategory(subcategory))) {
+      setSubcategory("");
+    }
+  }, [cat, brand, subcategory, subcategories.join("|")]);
   const filtered = d.products.filter(
     (p) =>
       (p.name + p.code + p.category + (p.brand || "") + (p.subcategory || "")).toLowerCase().includes(q.toLowerCase()) &&
@@ -590,12 +612,14 @@ function Products() {
                 <option key={item}>{item}</option>
               ))}
             </select>
-            <select value={subcategory} onChange={(e) => setSubcategory(e.target.value)}>
-              <option value="">All Subcategories</option>
-              {makeupSubcategoryGroups.flatMap((group) => group.items).map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
+            {showSubcategory && (
+              <select value={subcategory} onChange={(e) => setSubcategory(e.target.value)}>
+                <option value="">All Subcategories</option>
+                {subcategories.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            )}
           </div>
           <div className="product-grid">
             {filtered.map((p) => (
@@ -1126,6 +1150,11 @@ function Admin() {
   const [form, setForm] = useState(null);
   const [offer, setOffer] = useState(null);
   const [productCategory, setProductCategory] = useState("");
+  const [productBrand, setProductBrand] = useState("");
+  const [productSubcategory, setProductSubcategory] = useState("");
+  const productBrands = [...new Set(d.products.map((product) => product.brand?.trim() || "Unbranded"))].sort();
+  const adminSubcategories = getSubcategories(d, productCategory, productBrand);
+  const showAdminSubcategory = Boolean((productCategory || productBrand) && adminSubcategories.length);
   const update = (patch) => {
     const nd = { ...d, ...patch };
     setD(nd);
@@ -1175,6 +1204,7 @@ function Admin() {
           ["dashboard", HomeIcon, "Dashboard"],
           ["products", Package, "Products"],
           ["categories", Tag, "Categories"],
+          ["subcategories", Tag, "Subcategories"],
           ["offers", Tag, "Offers"],
           ["branding", Settings, "Company & Branding"],
           ["messages", Inbox, "Enquiries"],
@@ -1252,6 +1282,7 @@ function Admin() {
                 form={form}
                 setForm={setForm}
                 categories={d.categories}
+                subcategories={getSubcategories(d, form.category, form.brand)}
                 onCancel={() => setEditing(null)}
                 onSave={() => {
                   const arr = d.products.some((p) => p.id === form.id)
@@ -1266,7 +1297,7 @@ function Admin() {
                 <div className="admin-category-filter">
                   <button
                     className={!productCategory ? "active" : ""}
-                    onClick={() => setProductCategory("")}
+                    onClick={() => { setProductCategory(""); setProductSubcategory(""); }}
                   >
                     <b>All Products</b>
                     <span>{d.products.length} products</span>
@@ -1286,13 +1317,25 @@ function Admin() {
                             ? "active"
                             : ""
                         }
-                        onClick={() => setProductCategory(category)}
+                        onClick={() => { setProductCategory(category); setProductSubcategory(""); }}
                       >
                         <b>{category}</b>
                         <span>{count} product{count === 1 ? "" : "s"}</span>
                       </button>
                     );
                   })}
+                </div>
+                <div className="toolbar admin-product-filters">
+                  <select value={productBrand} onChange={(e) => { setProductBrand(e.target.value); setProductSubcategory(""); }}>
+                    <option value="">All Brands</option>
+                    {productBrands.map((brand) => <option key={brand}>{brand}</option>)}
+                  </select>
+                  {showAdminSubcategory && (
+                    <select value={productSubcategory} onChange={(e) => setProductSubcategory(e.target.value)}>
+                      <option value="">All Subcategories</option>
+                      {adminSubcategories.map((item) => <option key={item}>{item}</option>)}
+                    </select>
+                  )}
                 </div>
                 <div className="admin-actions">
                   <button
@@ -1306,9 +1349,11 @@ function Admin() {
                   {d.products
                     .filter(
                       (product) =>
-                        !productCategory ||
+                        (!productCategory ||
                         normalizeCategory(product.category) ===
-                          normalizeCategory(productCategory)
+                          normalizeCategory(productCategory)) &&
+                        (!productBrand || normalizeCategory(product.brand || "Unbranded") === normalizeCategory(productBrand)) &&
+                        (!productSubcategory || normalizeCategory(product.subcategory) === normalizeCategory(productSubcategory))
                     )
                     .map((p) => (
                     <div className="row" key={p.id}>
@@ -1332,9 +1377,11 @@ function Admin() {
                     ))}
                   {!d.products.some(
                     (product) =>
-                      !productCategory ||
+                      (!productCategory ||
                       normalizeCategory(product.category) ===
-                        normalizeCategory(productCategory)
+                        normalizeCategory(productCategory)) &&
+                      (!productBrand || normalizeCategory(product.brand || "Unbranded") === normalizeCategory(productBrand)) &&
+                      (!productSubcategory || normalizeCategory(product.subcategory) === normalizeCategory(productSubcategory))
                   ) && <div className="empty">No products in this category.</div>}
                 </div>
               </>
@@ -1345,6 +1392,7 @@ function Admin() {
         {tab === "branding" && <BrandingAdmin d={d} update={update} />}{" "}
         {tab === "jobs" && <JobsAdmin d={d} update={update} />}{" "}
         {tab === "categories" && <CategoriesAdmin d={d} update={update} />}
+        {tab === "subcategories" && <SubcategoriesAdmin d={d} update={update} />}
         {tab === "messages" && <MessagesAdmin d={d} />}
       </section>
     </div>
@@ -1353,9 +1401,7 @@ function Admin() {
 function CategoriesAdmin({ d, update }) {
   const [editingCategory, setEditingCategory] = useState(null);
   const [name, setName] = useState("");
-
   const startEditing = (category = "") => {
-    setEditingCategory(category || "new");
     setName(category);
   };
 
@@ -1384,6 +1430,11 @@ function CategoriesAdmin({ d, update }) {
     if (editingCategory === "new") {
       update({ categories: [...d.categories, nextName] });
     } else {
+      const nextSubcategories = { ...(d.subcategories || {}) };
+      if (nextSubcategories[editingCategory]) {
+        nextSubcategories[nextName] = nextSubcategories[editingCategory];
+        delete nextSubcategories[editingCategory];
+      }
       update({
         categories: d.categories.map((category) =>
           category === editingCategory ? nextName : category
@@ -1393,6 +1444,7 @@ function CategoriesAdmin({ d, update }) {
             ? { ...product, category: nextName }
             : product
         ),
+        subcategories: nextSubcategories,
       });
     }
     cancelEditing();
@@ -1477,7 +1529,64 @@ function CategoriesAdmin({ d, update }) {
     </div>
   );
 }
-function ProductEditor({ form, setForm, categories, onCancel, onSave }) {
+function SubcategoriesAdmin({ d, update }) {
+  const [category, setCategory] = useState(d.categories[0] || "");
+  const [name, setName] = useState("");
+  const subcategories = d.subcategories || {};
+  const items = subcategories[category] || [];
+  const saveSubcategory = () => {
+    const nextName = name.trim();
+    if (!category || !nextName) {
+      alert("Select a category and enter a subcategory name.");
+      return;
+    }
+    if (items.some((item) => normalizeCategory(item) === normalizeCategory(nextName))) {
+      alert("This subcategory already exists in the selected category.");
+      return;
+    }
+    update({ subcategories: { ...subcategories, [category]: [...items, nextName] } });
+    setName("");
+  };
+  const deleteSubcategory = (item) => {
+    if (!confirm(`Delete the "${item}" subcategory?`)) return;
+    update({
+      subcategories: { ...subcategories, [category]: items.filter((entry) => entry !== item) },
+      products: d.products.map((product) =>
+        product.category === category && product.subcategory === item
+          ? { ...product, subcategory: "" }
+          : product
+      ),
+    });
+  };
+  return (
+    <div className="category-admin">
+      <div className="form-card category-form">
+        <h2>Create Subcategory</h2>
+        <select value={category} onChange={(e) => setCategory(e.target.value)}>
+          {d.categories.map((item) => <option key={item}>{item}</option>)}
+        </select>
+        <input value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveSubcategory()} placeholder="Subcategory name" />
+        <button className="btn primary" onClick={saveSubcategory}><Plus /> Add Subcategory</button>
+      </div>
+      <div className="admin-category-filter">
+        {d.categories.map((item) => (
+          <button key={item} className={category === item ? "active" : ""} onClick={() => setCategory(item)}>
+            <b>{item}</b><span>{(subcategories[item] || []).length} subcategories</span>
+          </button>
+        ))}
+      </div>
+      <div className="admin-table category-table">
+        {items.length ? items.map((item) => (
+          <div className="category-row" key={item}>
+            <div><b>{item}</b><span>{category}</span></div>
+            <div className="row-actions"><button onClick={() => deleteSubcategory(item)}><Trash2 /></button></div>
+          </div>
+        )) : <div className="empty">No subcategories for {category}.</div>}
+      </div>
+    </div>
+  );
+}
+function ProductEditor({ form, setForm, categories, subcategories, onCancel, onSave }) {
   const patch = (k, v) => setForm({ ...form, [k]: v });
   return (
     <div className="editor">
@@ -1504,7 +1613,7 @@ function ProductEditor({ form, setForm, categories, onCancel, onSave }) {
             onChange={(e) => patch("subcategory", e.target.value)}
           >
             <option value="">Subcategory (optional)</option>
-            {makeupSubcategoryGroups.flatMap((group) => group.items).map((item) => (
+            {subcategories.map((item) => (
               <option key={item}>{item}</option>
             ))}
           </select>
