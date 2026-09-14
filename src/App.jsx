@@ -65,6 +65,12 @@ const wa = (n, msg) =>
   `https://wa.me/${n.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`;
 const normalizeCategory = (category) =>
   String(category || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const makeupSubcategoryGroups = [
+  { title: "Complexion", items: ["Blush", "Bronzers", "Colour Correctors", "Concealer", "Contouring", "Face Powders", "Foundation", "Highlight", "Primers", "Setting Sprays"] },
+  { title: "Eye & Brows", items: ["Brows", "Eye Liner", "Eye Primer", "Eyelash Glue", "Eyeshadow", "False Eyelashes", "Lash & Brow Serum", "Mascara"] },
+  { title: "Lips", items: ["Lip Gloss", "Lip Liner & Pencils", "Lip Oil", "Lip Plumper", "Lip Stain & Tints", "Lipstick"] },
+  { title: "Makeup Brushes & Accessories", items: ["Concealer Brushes", "Eye Brushes", "Eyelash Curlers", "False Nails", "Foundation Brushes", "Makeup Bags", "Makeup Brushes", "Makeup Sponges"] },
+];
 const siteUrl = "https://www.gosafecosmetics.com";
 function SEO({ title, description, path = "/", type = "website", product }) {
   useEffect(() => {
@@ -187,6 +193,24 @@ function Navbar({ s, d }) {
                     <span>{category.name}</span>
                   </Link>
                 ))}
+              </div>
+              <div className="makeup-subcategory-menu">
+                <div className="makeup-menu-heading">
+                  <span>Makeup</span>
+                  <Link to="/products?category=Makeup" onClick={() => { setCategoriesOpen(false); setOpen(false); }}>Shop all</Link>
+                </div>
+                <div className="makeup-subcategory-grid">
+                  {makeupSubcategoryGroups.map((group) => (
+                    <div key={group.title}>
+                      <h4>{group.title}</h4>
+                      {group.items.map((item) => (
+                        <Link key={item} to={`/products?category=Makeup&subcategory=${encodeURIComponent(item)}`} onClick={() => { setCategoriesOpen(false); setOpen(false); }}>
+                          {item}
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -336,7 +360,7 @@ function ProductCard({ p }) {
       </Link>
       <div className="product-body">
         <span className="muted">
-          {p.brand || "Unbranded"} · {p.category} · {p.code}
+          {p.brand || "Unbranded"} · {p.category}{p.subcategory ? ` · ${p.subcategory}` : ""} · {p.code}
         </span>
         <Link to={`/products/${p.id}`}>
           <h3>{p.name}</h3>
@@ -515,17 +539,21 @@ function Products() {
   const { search } = useLocation();
   const params = new URLSearchParams(search);
   const categoryFromUrl = params.get("category") || "";
+  const subcategoryFromUrl = params.get("subcategory") || "";
   const brandFromUrl = params.get("brand") || "";
   const [q, setQ] = useState("");
   const [cat, setCat] = useState(categoryFromUrl);
+  const [subcategory, setSubcategory] = useState(subcategoryFromUrl);
   const [brand, setBrand] = useState(brandFromUrl);
   useEffect(() => setCat(categoryFromUrl), [categoryFromUrl]);
+  useEffect(() => setSubcategory(subcategoryFromUrl), [subcategoryFromUrl]);
   useEffect(() => setBrand(brandFromUrl), [brandFromUrl]);
   const brands = [...new Set(d.products.map((p) => p.brand?.trim() || "Unbranded"))].sort();
   const filtered = d.products.filter(
     (p) =>
-      (p.name + p.code + p.category + (p.brand || "")).toLowerCase().includes(q.toLowerCase()) &&
+      (p.name + p.code + p.category + (p.brand || "") + (p.subcategory || "")).toLowerCase().includes(q.toLowerCase()) &&
       (!cat || normalizeCategory(p.category) === normalizeCategory(cat)) &&
+      (!subcategory || normalizeCategory(p.subcategory) === normalizeCategory(subcategory)) &&
       (!brand || normalizeCategory(p.brand || "Unbranded") === normalizeCategory(brand))
   );
   return (
@@ -559,6 +587,12 @@ function Products() {
             <select value={brand} onChange={(e) => setBrand(e.target.value)}>
               <option value="">All Brands</option>
               {brands.map((item) => (
+                <option key={item}>{item}</option>
+              ))}
+            </select>
+            <select value={subcategory} onChange={(e) => setSubcategory(e.target.value)}>
+              <option value="">All Subcategories</option>
+              {makeupSubcategoryGroups.flatMap((group) => group.items).map((item) => (
                 <option key={item}>{item}</option>
               ))}
             </select>
@@ -743,7 +777,7 @@ function ProductDetail() {
             </div>
             <div className="detail-copy">
               <span className="eyebrow">
-                {p.brand || "Unbranded"} · {p.category} · {p.code}
+                {p.brand || "Unbranded"} · {p.category}{p.subcategory ? ` · ${p.subcategory}` : ""} · {p.code}
               </span>
               <h1>{p.name}</h1>
               <p className="lead">{p.description}</p>
@@ -1107,6 +1141,7 @@ function Admin() {
             name: "",
             code: "",
             brand: "",
+            subcategory: "",
             category: productCategory || d.categories[0] || "Skincare",
             image: "",
             images: [],
@@ -1464,6 +1499,15 @@ function ProductEditor({ form, setForm, categories, onCancel, onSave }) {
             onChange={(e) => patch("brand", e.target.value)}
             placeholder="Brand"
           />
+          <select
+            value={form.subcategory || ""}
+            onChange={(e) => patch("subcategory", e.target.value)}
+          >
+            <option value="">Subcategory (optional)</option>
+            {makeupSubcategoryGroups.flatMap((group) => group.items).map((item) => (
+              <option key={item}>{item}</option>
+            ))}
+          </select>
           <select
             value={form.category}
             onChange={(e) => patch("category", e.target.value)}
