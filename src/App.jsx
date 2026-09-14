@@ -553,31 +553,40 @@ function Products() {
   const d = useData();
   const { search } = useLocation();
   const params = new URLSearchParams(search);
-  const categoryFromUrl = params.get("category") || "";
-  const subcategoryFromUrl = params.get("subcategory") || "";
-  const brandFromUrl = params.get("brand") || "";
+  const categoryFromUrl = params.getAll("category");
+  const subcategoryFromUrl = params.getAll("subcategory");
+  const brandFromUrl = params.getAll("brand");
   const [q, setQ] = useState("");
   const [cat, setCat] = useState(categoryFromUrl);
   const [subcategory, setSubcategory] = useState(subcategoryFromUrl);
   const [brand, setBrand] = useState(brandFromUrl);
-  useEffect(() => setCat(categoryFromUrl), [categoryFromUrl]);
-  useEffect(() => setSubcategory(subcategoryFromUrl), [subcategoryFromUrl]);
-  useEffect(() => setBrand(brandFromUrl), [brandFromUrl]);
+  useEffect(() => setCat(categoryFromUrl), [search]);
+  useEffect(() => setSubcategory(subcategoryFromUrl), [search]);
+  useEffect(() => setBrand(brandFromUrl), [search]);
   const brands = [...new Set(d.products.map((p) => p.brand?.trim() || "Unbranded"))].sort();
-  const subcategories = getSubcategories(d, cat, brand);
-  const showSubcategory = Boolean((cat || brand) && subcategories.length);
+  const matchingProducts = d.products.filter((product) =>
+    (!cat.length || cat.some((item) => normalizeCategory(product.category) === normalizeCategory(item))) &&
+    (!brand.length || brand.some((item) => normalizeCategory(product.brand || "Unbranded") === normalizeCategory(item)))
+  );
+  const subcategories = [...new Set([
+    ...cat.flatMap((item) => getSubcategories(d, item)),
+    ...matchingProducts.map((product) => product.subcategory).filter(Boolean),
+  ])].sort();
+  const showSubcategory = Boolean((cat.length || brand.length) && subcategories.length);
   useEffect(() => {
-    if (subcategory && !subcategories.some((item) => normalizeCategory(item) === normalizeCategory(subcategory))) {
-      setSubcategory("");
+    const valid = subcategory.filter((item) => subcategories.some((option) => normalizeCategory(option) === normalizeCategory(item)));
+    if (valid.length !== subcategory.length) {
+      setSubcategory(valid);
     }
   }, [cat, brand, subcategory, subcategories.join("|")]);
   const filtered = d.products.filter(
     (p) =>
       (p.name + p.code + p.category + (p.brand || "") + (p.subcategory || "")).toLowerCase().includes(q.toLowerCase()) &&
-      (!cat || normalizeCategory(p.category) === normalizeCategory(cat)) &&
-      (!subcategory || normalizeCategory(p.subcategory) === normalizeCategory(subcategory)) &&
-      (!brand || normalizeCategory(p.brand || "Unbranded") === normalizeCategory(brand))
+      (!cat.length || cat.some((item) => normalizeCategory(p.category) === normalizeCategory(item))) &&
+      (!subcategory.length || subcategory.some((item) => normalizeCategory(p.subcategory) === normalizeCategory(item))) &&
+      (!brand.length || brand.some((item) => normalizeCategory(p.brand || "Unbranded") === normalizeCategory(item)))
   );
+  const toggleFilter = (setter, value) => setter((current) => current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
   return (
     <Layout>
       <SEO title="Cosmetics Products for Wholesale Supply" description="Browse skincare, hair care, makeup, personal care and fragrance products available from GOSAFE COSMETICS for wholesale and distribution in Dubai, UAE and worldwide." path="/products" />
@@ -600,25 +609,25 @@ function Products() {
                 onChange={(e) => setQ(e.target.value)}
               />
             </div>
-            <select value={cat} onChange={(e) => setCat(e.target.value)}>
-              <option value="">All Categories</option>
-              {d.categories.map((c) => (
-                <option key={c}>{c}</option>
+            <div className="filter-group">
+              <strong>Categories</strong>
+              {d.categories.map((item) => (
+                <label key={item}><input type="checkbox" checked={cat.includes(item)} onChange={() => toggleFilter(setCat, item)} /> {item}</label>
               ))}
-            </select>
-            <select value={brand} onChange={(e) => setBrand(e.target.value)}>
-              <option value="">All Brands</option>
+            </div>
+            <div className="filter-group">
+              <strong>Brands</strong>
               {brands.map((item) => (
-                <option key={item}>{item}</option>
+                <label key={item}><input type="checkbox" checked={brand.includes(item)} onChange={() => toggleFilter(setBrand, item)} /> {item}</label>
               ))}
-            </select>
+            </div>
             {showSubcategory && (
-              <select value={subcategory} onChange={(e) => setSubcategory(e.target.value)}>
-                <option value="">All Subcategories</option>
+              <div className="filter-group">
+                <strong>Subcategories</strong>
                 {subcategories.map((item) => (
-                  <option key={item}>{item}</option>
+                  <label key={item}><input type="checkbox" checked={subcategory.includes(item)} onChange={() => toggleFilter(setSubcategory, item)} /> {item}</label>
                 ))}
-              </select>
+              </div>
             )}
           </div>
           <div className="product-grid">
