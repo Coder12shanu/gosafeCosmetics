@@ -112,8 +112,10 @@ select {
 .category-dropdown {
   position: absolute;
   top: calc(100% - 8px);
-  right: -18px;
-  width: min(1120px, calc(100vw - 40px));
+  right: 0;
+  width: min(440px, calc(100vw - 24px));
+  max-height: min(520px, calc(100vh - 92px));
+  overflow-y: auto;
   padding: 14px;
   background: #fff;
   border: 1px solid var(--line);
@@ -1359,6 +1361,12 @@ footer {
   }
   .container {
     width: min(100% - 28px, 1180px);
+  }
+  .category-dropdown-grid {
+    grid-template-columns: 1fr;
+  }
+  .category-dropdown-grid img {
+    height: 100px;
   }
   .contactbar {
     font-size: 11px;
