@@ -168,10 +168,6 @@ function Navbar({ s, d }) {
         (product) => normalizeCategory(product.category) === normalizeCategory(category)
       )?.image || categoryFallbackImages[index % categoryFallbackImages.length],
   }));
-  const subcategorySections = d.categories
-    .map((category) => ({ category, items: getSubcategories(d, category) }))
-    .filter((section) => section.items.length);
-
   return (
     <header className="navbar">
       <div className="container nav-inner">
@@ -212,21 +208,6 @@ function Navbar({ s, d }) {
                   </Link>
                 ))}
               </div>
-              {subcategorySections.map((section) => (
-                <div className="makeup-subcategory-menu" key={section.category}>
-                  <div className="makeup-menu-heading">
-                    <span>{section.category}</span>
-                    <Link to={`/products?category=${encodeURIComponent(section.category)}`} onClick={() => { setCategoriesOpen(false); setOpen(false); }}>Shop all</Link>
-                  </div>
-                  <div className="makeup-subcategory-grid">
-                    {section.items.map((item) => (
-                      <Link key={item} to={`/products?category=${encodeURIComponent(section.category)}&subcategory=${encodeURIComponent(item)}`} onClick={() => { setCategoriesOpen(false); setOpen(false); }}>
-                        {item}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
           <Link to="/about" className={pathname.startsWith("/about") ? "active" : ""} onClick={() => setOpen(false)}>
