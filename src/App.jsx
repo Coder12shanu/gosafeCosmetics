@@ -336,7 +336,7 @@ function ProductCard({ p }) {
       </Link>
       <div className="product-body">
         <span className="muted">
-          {p.category} · {p.code}
+          {p.brand || "Unbranded"} · {p.category} · {p.code}
         </span>
         <Link to={`/products/${p.id}`}>
           <h3>{p.name}</h3>
@@ -513,14 +513,20 @@ function Home() {
 function Products() {
   const d = useData();
   const { search } = useLocation();
-  const categoryFromUrl = new URLSearchParams(search).get("category") || "";
+  const params = new URLSearchParams(search);
+  const categoryFromUrl = params.get("category") || "";
+  const brandFromUrl = params.get("brand") || "";
   const [q, setQ] = useState("");
   const [cat, setCat] = useState(categoryFromUrl);
+  const [brand, setBrand] = useState(brandFromUrl);
   useEffect(() => setCat(categoryFromUrl), [categoryFromUrl]);
+  useEffect(() => setBrand(brandFromUrl), [brandFromUrl]);
+  const brands = [...new Set(d.products.map((p) => p.brand?.trim() || "Unbranded"))].sort();
   const filtered = d.products.filter(
     (p) =>
-      (p.name + p.code + p.category).toLowerCase().includes(q.toLowerCase()) &&
-      (!cat || normalizeCategory(p.category) === normalizeCategory(cat))
+      (p.name + p.code + p.category + (p.brand || "")).toLowerCase().includes(q.toLowerCase()) &&
+      (!cat || normalizeCategory(p.category) === normalizeCategory(cat)) &&
+      (!brand || normalizeCategory(p.brand || "Unbranded") === normalizeCategory(brand))
   );
   return (
     <Layout>
@@ -548,6 +554,12 @@ function Products() {
               <option value="">All Categories</option>
               {d.categories.map((c) => (
                 <option key={c}>{c}</option>
+              ))}
+            </select>
+            <select value={brand} onChange={(e) => setBrand(e.target.value)}>
+              <option value="">All Brands</option>
+              {brands.map((item) => (
+                <option key={item}>{item}</option>
               ))}
             </select>
           </div>
@@ -731,7 +743,7 @@ function ProductDetail() {
             </div>
             <div className="detail-copy">
               <span className="eyebrow">
-                {p.category} · {p.code}
+                {p.brand || "Unbranded"} · {p.category} · {p.code}
               </span>
               <h1>{p.name}</h1>
               <p className="lead">{p.description}</p>
@@ -1094,6 +1106,7 @@ function Admin() {
             id: "p" + Date.now(),
             name: "",
             code: "",
+            brand: "",
             category: productCategory || d.categories[0] || "Skincare",
             image: "",
             images: [],
@@ -1268,7 +1281,7 @@ function Admin() {
                       <div>
                         <b>{p.name}</b>
                         <span>
-                          {p.code} · {p.category}
+                          {p.code} · {p.brand || "Unbranded"} · {p.category}
                         </span>
                       </div>
                       <span>{p.trending ? "Trending" : ""}</span>
@@ -1445,6 +1458,11 @@ function ProductEditor({ form, setForm, categories, onCancel, onSave }) {
             value={form.code}
             onChange={(e) => patch("code", e.target.value)}
             placeholder="Product code"
+          />
+          <input
+            value={form.brand || ""}
+            onChange={(e) => patch("brand", e.target.value)}
+            placeholder="Brand"
           />
           <select
             value={form.category}
