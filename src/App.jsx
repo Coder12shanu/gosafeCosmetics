@@ -544,15 +544,13 @@ function Products() {
   useEffect(() => setCat(categoryFromUrl), [search]);
   useEffect(() => setSubcategory(subcategoryFromUrl), [search]);
   useEffect(() => setBrand(brandFromUrl), [search]);
-  const brands = [...new Set(d.products.map((p) => p.brand?.trim() || "Unbranded"))].sort();
-  const matchingProducts = d.products.filter((product) =>
-    (!cat.length || cat.some((item) => normalizeCategory(product.category) === normalizeCategory(item))) &&
-    (!brand.length || brand.some((item) => normalizeCategory(product.brand || "Unbranded") === normalizeCategory(item)))
-  );
-  const subcategories = [...new Set([
-    ...cat.flatMap((item) => getSubcategories(d, item)),
-    ...matchingProducts.map((product) => product.subcategory).filter(Boolean),
-  ])].sort();
+  const matches = (product, filters = {}) =>
+    (!filters.categories?.length || filters.categories.some((item) => normalizeCategory(product.category) === normalizeCategory(item))) &&
+    (!filters.brands?.length || filters.brands.some((item) => normalizeCategory(product.brand || "Unbranded") === normalizeCategory(item))) &&
+    (!filters.subcategories?.length || filters.subcategories.some((item) => normalizeCategory(product.subcategory) === normalizeCategory(item)));
+  const categoryOptions = [...new Set(d.products.filter((product) => matches(product, { brands: brand, subcategories: subcategory })).map((product) => product.category))].sort();
+  const brandOptions = [...new Set(d.products.filter((product) => matches(product, { categories: cat, subcategories: subcategory })).map((product) => product.brand?.trim() || "Unbranded"))].sort();
+  const subcategories = [...new Set(d.products.filter((product) => matches(product, { categories: cat, brands: brand })).map((product) => product.subcategory).filter(Boolean))].sort();
   const showSubcategory = Boolean((cat.length || brand.length) && subcategories.length);
   useEffect(() => {
     const valid = subcategory.filter((item) => subcategories.some((option) => normalizeCategory(option) === normalizeCategory(item)));
@@ -560,6 +558,14 @@ function Products() {
       setSubcategory(valid);
     }
   }, [cat, brand, subcategory, subcategories.join("|")]);
+  useEffect(() => {
+    const valid = cat.filter((item) => categoryOptions.some((option) => normalizeCategory(option) === normalizeCategory(item)));
+    if (valid.length !== cat.length) setCat(valid);
+  }, [categoryOptions.join("|"), cat.join("|")]);
+  useEffect(() => {
+    const valid = brand.filter((item) => brandOptions.some((option) => normalizeCategory(option) === normalizeCategory(item)));
+    if (valid.length !== brand.length) setBrand(valid);
+  }, [brandOptions.join("|"), brand.join("|")]);
   const filtered = d.products.filter(
     (p) =>
       (p.name + p.code + p.category + (p.brand || "") + (p.subcategory || "")).toLowerCase().includes(q.toLowerCase()) &&
@@ -592,13 +598,13 @@ function Products() {
             </div>
             <div className="filter-group">
               <strong>Categories</strong>
-              {d.categories.map((item) => (
+              {categoryOptions.map((item) => (
                 <label key={item}><input type="checkbox" checked={cat.includes(item)} onChange={() => toggleFilter(setCat, item)} /> {item}</label>
               ))}
             </div>
             <div className="filter-group">
               <strong>Brands</strong>
-              {brands.map((item) => (
+              {brandOptions.map((item) => (
                 <label key={item}><input type="checkbox" checked={brand.includes(item)} onChange={() => toggleFilter(setBrand, item)} /> {item}</label>
               ))}
             </div>
